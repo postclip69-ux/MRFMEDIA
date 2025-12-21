@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RAYAP ONLINE</title>
+    <title>MRF MEDIA</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -85,7 +86,7 @@
         
         <header class="flex justify-between items-center glass-panel p-3 rounded-lg border-b-2 border-secondary sticky top-0 z-50 bg-[#0b1120]">
             <div>
-                <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-secondary to-accent">STOK RAYAP ONLINE</h1>
+                <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-secondary to-accent">STOK MFM MEDIA</h1>
             </div>
             <div class="flex gap-2">
                 <input type="text" x-model="searchQuery" placeholder="Cari..." 
@@ -97,6 +98,11 @@
         </header>
 
         <div class="flex gap-2">
+            <button @click="switchTab('xla')" 
+                :class="currentTab === 'xla' ? 'bg-accent text-slate-900 font-bold' : 'bg-slate-800 text-gray-400'"
+                class="flex-1 py-2 rounded text-[10px] uppercase tracking-wider transition-all border border-white/5">
+                AKRAB XLA
+            </button>
             <button @click="switchTab('regulers')" 
                 :class="currentTab === 'regulers' ? 'bg-accent text-slate-900 font-bold' : 'bg-slate-800 text-gray-400'"
                 class="flex-1 py-2 rounded text-[10px] uppercase tracking-wider transition-all border border-white/5">
@@ -121,7 +127,8 @@
             </div>
 
             <div x-show="!isLoading && !error" 
-                 class="grid grid-cols-4 gap-2 transition-all">
+                 class="grid gap-2 transition-all"
+                 :class="(currentTab === 'xla') ? 'grid-cols-2' : 'grid-cols-4'">
                 
                 <template x-for="item in filteredData" :key="item.config">
                     <div class="glass-panel p-2 rounded hover:bg-slate-700 transition relative flex flex-col justify-between h-full min-h-[80px] overflow-hidden group">
@@ -135,20 +142,23 @@
                         <div class="mb-1 pr-3">
                             <div class="flex justify-between items-start">
                                 <h3 @click="copyText(item.config)" 
-                                    class="font-bold text-white cursor-pointer truncate w-full hover:text-accent text-[8px]"
+                                    class="font-bold text-white cursor-pointer truncate w-full hover:text-accent"
+                                    :class="(currentTab === 'xla') ? 'text-sm' : 'text-[8px]'" 
                                     :title="item.config">
                                     <span x-text="item.config"></span>
                                 </h3>
                             </div>
                             
                             <div :class="item.count > 0 ? 'text-emerald-400' : 'text-red-500'" 
-                                 class="font-bold mt-1 flex items-center gap-1 text-[8px]">
+                                 class="font-bold mt-1 flex items-center gap-1"
+                                 :class="(currentTab === 'xla') ? 'text-xs' : 'text-[8px]'">
                                 Stok: <span x-text="item.count"></span>
                             </div>
 
                             <template x-if="item.count === 0">
                                 <div class="mt-1">
-                                    <p class="text-red-500 font-bold italic text-glow-red leading-tight text-[6px]">
+                                    <p class="text-red-500 font-bold italic text-glow-red leading-tight"
+                                       :class="(currentTab === 'xla') ? 'text-[9px]' : 'text-[6px]'">
                                         HABIS
                                     </p>
                                 </div>
@@ -156,13 +166,29 @@
                         </div>
 
                         <div class="border-t border-white/5 pt-1 mt-auto">
-                            <div class="text-center">
-                                <span class="font-bold text-gray-200 text-[10px]"
-                                      x-text="item.quota_allocation"></span> 
-                                <span class="text-gray-500 text-[8px]">
-                                    <span x-show="!isObject(item.quota_allocation)">GB</span>
-                                </span>
-                            </div>
+                            
+                            <template x-if="isObject(item.quota_allocation)">
+                                <div class="space-y-0.5">
+                                    <template x-for="(val, key) in item.quota_allocation">
+                                        <div class="flex justify-between items-center" 
+                                             :class="(currentTab === 'xla') ? 'text-[9px]' : 'text-[6px]'">
+                                            <span class="text-gray-400 truncate max-w-[40px]" x-text="key"></span>
+                                            <span class="text-accent font-mono font-bold" x-text="val + (currentTab === 'xla' ? '' : ' GB')"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+
+                            <template x-if="!isObject(item.quota_allocation)">
+                                <div class="text-center">
+                                    <span class="font-bold text-gray-200" 
+                                          :class="(currentTab === 'xla') ? 'text-xs' : 'text-[10px]'"
+                                          x-text="item.quota_allocation"></span> 
+                                    <span class="text-gray-500 text-[8px]">
+                                        <span>GB</span>
+                                    </span>
+                                </div>
+                            </template>
                         </div>
 
                     </div>
@@ -183,12 +209,11 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('stockApp', () => ({
-                currentTab: 'regulers', // Default ke XDA
+                currentTab: 'xla', // Balikin default ke XLA sesuai request
                 data: [],
                 searchQuery: '',
                 isLoading: true,
                 error: null,
-                // API Key dipakai untuk XDA dan CIRCLE
                 apiKey: 'bunderkananbunderkanankirikotaksegitigaatas',
                 
                 updateInterval: null,
@@ -200,6 +225,16 @@
                     'XDA47': 'EXTRA BIG', 'XDA50': 'JUMBO V2', 'XDA53': 'JUMBO V3','XDA55': 'SUPER BIG', 'XDA63': 'MEGABIG V2',
                     'XDA64': 'JUMBO', 'XDA76': 'SUPER JUMBO', 'XDA78': 'ULTRA JUMBO', 'XDA88': 'MEGABIG',
                     'XDA105': 'HYPER JUMBO'
+                },
+
+                // Mapping Manual XLA (Dikembalikan)
+                xlaDetails: {
+                    'SuperMini': { 'Area1': '13-15', 'Area2': '15-17', 'Area3': '20-22', 'Area4': '30-32' },
+                    'Mini':      { 'Area1': '31-33', 'Area2': '33-35', 'Area3': '38-40', 'Area4': '48-50' },
+                    'Big':       { 'Area1': '38-40', 'Area2': '40-42', 'Area3': '45-47', 'Area4': '55-57' },
+                    'Jumbo V2':  { 'Area1': '50-52', 'Area2': '52-54', 'Area3': '57-59', 'Area4': '67-69' },
+                    'JUMBO':     { 'Area1': '65',    'Area2': '70',    'Area3': '83',    'Area4': '123' },
+                    'MegaBig':   { 'Area1': '88-90', 'Area2': '90-92', 'Area3': '95-97', 'Area4': '105-107' }
                 },
 
                 init() { 
@@ -234,36 +269,55 @@
 
                     try {
                         let url = '';
+                        let options = {};
                         
-                        // Tentukan URL berdasarkan Tab
-                        if (this.currentTab === 'regulers') {
+                        if (this.currentTab === 'xla') {
+                            // XLA Menggunakan endpoint lama (Khfy via Proxy)
+                            url = '/api/xla?_=' + Date.now();
+                        } else if (this.currentTab === 'regulers') {
+                            // XDA Menggunakan API JuraganXL
                             url = '/api/regulers?_=' + Date.now();
+                            options = { headers: { 'x-api-key': this.apiKey } };
                         } else if (this.currentTab === 'circles') {
+                             // Circle Menggunakan API JuraganXL
                             url = '/api/circles?_=' + Date.now();
+                            options = { headers: { 'x-api-key': this.apiKey } };
                         }
-
-                        // Kedua endpoint ini menggunakan Header API Key yang sama
-                        const options = { 
-                            headers: { 
-                                'x-api-key': this.apiKey 
-                            } 
-                        };
 
                         const res = await fetch(url, options);
                         if (!res.ok) throw new Error('Gagal koneksi server');
                         const json = await res.json();
                         
-                        let rawData = Array.isArray(json) ? json : [];
-                        
-                        // LOGIC PROCESSING DATA
-                        if (this.currentTab === 'regulers') {
-                            // Logic khusus XDA (pake mapping nama)
+                        // Handler khusus error
+                        if (json.error) throw new Error(json.error);
+
+                        // === LOGIC XLA ===
+                        if (this.currentTab === 'xla') {
+                            if (json.ok && Array.isArray(json.data)) {
+                                this.data = json.data.map(item => {
+                                    let cleanName = item.nama ? item.nama.trim() : '';
+                                    let quotaManual = this.xlaDetails[cleanName]; 
+                                    if (!quotaManual) quotaManual = item.type; 
+                                    return {
+                                        config: item.nama,
+                                        count: parseInt(item.sisa_slot),
+                                        quota_allocation: quotaManual // Ini object atau string
+                                    };
+                                });
+                            }
+                        }
+                        // === LOGIC XDA (REGULER) ===
+                        else if (this.currentTab === 'regulers') {
+                            let rawData = Array.isArray(json) ? json : [];
                             this.data = rawData.map(item => {
                                 const originalCode = item.config; 
                                 const friendlyName = this.xdaNames[originalCode] || originalCode;
                                 return {
                                     ...item,
-                                    config: friendlyName,    
+                                    config: friendlyName,
+                                    // API mengembalikan object {Area1: 10, Area2: 20}
+                                    // Template HTML akan menangani looping object ini
+                                    quota_allocation: item.quota_allocation, 
                                     _sortKey: originalCode
                                 };
                             }).sort((a, b) => {
@@ -271,14 +325,15 @@
                                 const numB = parseInt(b._sortKey.replace(/^\D+/g, '')) || 0;
                                 return numA - numB;
                             });
-
-                        } else {
-                            // Logic Umum untuk CIRCLE (Tampilkan apa adanya dari API)
-                            // Asumsi struktur data mirip XDA: { config: "Nama", count: 10, ... }
+                        }
+                        // === LOGIC XL CIRCLE ===
+                        else if (this.currentTab === 'circles') {
+                            let rawData = Array.isArray(json) ? json : [];
                             this.data = rawData.map(item => ({
-                                config: item.config || item.nama || 'Unknown',
-                                count: parseInt(item.count || item.stok || item.sisa_slot || 0),
-                                quota_allocation: item.quota_allocation || item.kuota || '-'
+                                config: item.config || 'Circle',
+                                count: parseInt(item.count || 0),
+                                // API Circle mengembalikan number (misal 100), template akan tambah "GB"
+                                quota_allocation: item.quota_allocation 
                             }));
                         }
                         
