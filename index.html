@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RAYAP ONLINE</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Space Grotesk', 'sans-serif'] },
+                    colors: {
+                        glass: 'rgba(17, 25, 40, 0.95)',
+                        accent: '#00f2fe',
+                        secondary: '#4facfe',
+                        bgDark: '#050910'
+                    },
+                    fontSize: { 'xxs': '0.55rem' },
+                    screens: { 'xs': '480px' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #000000; 
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        #mobile-app-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #0b1120;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.1);
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+        }
+        
+        /* Animasi */
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .check-anim-entry { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 5px rgba(52, 211, 153, 0.5); border-color: rgba(52, 211, 153, 0.3); }
+            50% { box-shadow: 0 0 15px rgba(52, 211, 153, 1); border-color: rgba(52, 211, 153, 0.8); }
+        }
+        .glow-active { animation: pulseGlow 2s infinite ease-in-out; }
+
+        @keyframes pulseRedText {
+            0%, 100% { opacity: 0.5; text-shadow: 0 0 2px rgba(239, 68, 68, 0.2); }
+            50% { opacity: 1; text-shadow: 0 0 8px rgba(239, 68, 68, 0.9); }
+        }
+        .text-glow-red { animation: pulseRedText 1.5s infinite ease-in-out; }
+
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+
+<body>
+
+    <div id="mobile-app-container" class="p-2 space-y-4" x-data="stockApp()">
+        
+        <header class="flex justify-between items-center glass-panel p-3 rounded-lg border-b-2 border-secondary sticky top-0 z-50 bg-[#0b1120]">
+            <div>
+                <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-secondary to-accent">STOK RAYAP ONLINE</h1>
+            </div>
+            <div class="flex gap-2">
+                <input type="text" x-model="searchQuery" placeholder="Cari..." 
+                    class="py-1 px-3 rounded bg-slate-800 border border-slate-600 text-[10px] w-20 focus:w-28 transition-all outline-none">
+                <button @click="fetchData()" class="p-1.5 px-3 rounded bg-slate-700 text-white text-[10px]">
+                    <i class="fa-solid fa-sync" :class="{'fa-spin': isLoading}"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex gap-2">
+            <button @click="switchTab('regulers')" 
+                :class="currentTab === 'regulers' ? 'bg-accent text-slate-900 font-bold' : 'bg-slate-800 text-gray-400'"
+                class="flex-1 py-2 rounded text-[10px] uppercase tracking-wider transition-all border border-white/5">
+                AKRAB XDA
+            </button>
+            <button @click="switchTab('circles')" 
+                :class="currentTab === 'circles' ? 'bg-accent text-slate-900 font-bold' : 'bg-slate-800 text-gray-400'"
+                class="flex-1 py-2 rounded text-[10px] uppercase tracking-wider transition-all border border-white/5">
+                XL CIRCLE
+            </button>
+        </div>
+
+        <main class="min-h-[60vh]">
+            
+            <div x-show="isLoading" class="text-center py-10">
+                <i class="fa-solid fa-circle-notch fa-spin text-2xl text-accent"></i>
+            </div>
+
+            <div x-show="!isLoading && error" class="bg-red-900/30 p-4 rounded text-center text-red-400 text-xs border border-red-500/30">
+                <p x-text="error"></p>
+                <button @click="fetchData()" class="mt-2 text-white underline">Refresh</button>
+            </div>
+
+            <div x-show="!isLoading && !error" 
+                 class="grid grid-cols-4 gap-2 transition-all">
+                
+                <template x-for="item in filteredData" :key="item.config">
+                    <div class="glass-panel p-2 rounded hover:bg-slate-700 transition relative flex flex-col justify-between h-full min-h-[80px] overflow-hidden group">
+                        
+                        <template x-if="item.count > 0">
+                            <div class="absolute top-0 right-0 p-1 z-10 check-anim-entry">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-[12px] bg-slate-900 rounded-full border border-emerald-500/50 glow-active"></i>
+                            </div>
+                        </template>
+
+                        <div class="mb-1 pr-3">
+                            <div class="flex justify-between items-start">
+                                <h3 @click="copyText(item.config)" 
+                                    class="font-bold text-white cursor-pointer truncate w-full hover:text-accent text-[8px]"
+                                    :title="item.config">
+                                    <span x-text="item.config"></span>
+                                </h3>
+                            </div>
+                            
+                            <div :class="item.count > 0 ? 'text-emerald-400' : 'text-red-500'" 
+                                 class="font-bold mt-1 flex items-center gap-1 text-[8px]">
+                                Stok: <span x-text="item.count"></span>
+                            </div>
+
+                            <template x-if="item.count === 0">
+                                <div class="mt-1">
+                                    <p class="text-red-500 font-bold italic text-glow-red leading-tight text-[6px]">
+                                        HABIS
+                                    </p>
+                                </div>
+                            </template>
+                        </div>
+
+                        <div class="border-t border-white/5 pt-1 mt-auto">
+                            <div class="text-center">
+                                <span class="font-bold text-gray-200 text-[10px]"
+                                      x-text="item.quota_allocation"></span> 
+                                <span class="text-gray-500 text-[8px]">
+                                    <span x-show="!isObject(item.quota_allocation)">GB</span>
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+                </template>
+            </div>
+
+            <div x-show="!isLoading && !error && filteredData.length === 0" class="text-center py-10 text-gray-600 text-xs">
+                Data Kosong
+            </div>
+        </main>
+
+        <div x-show="toast.show" x-transition class="fixed bottom-4 right-4 bg-slate-800 border border-accent text-accent px-3 py-1.5 rounded shadow-lg z-50 text-xs font-bold">
+            <span x-text="toast.message"></span>
+        </div>
+        
+    </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('stockApp', () => ({
+                currentTab: 'regulers', // Default ke XDA
+                data: [],
+                searchQuery: '',
+                isLoading: true,
+                error: null,
+                // API Key dipakai untuk XDA dan CIRCLE
+                apiKey: 'bunderkananbunderkanankirikotaksegitigaatas',
+                
+                updateInterval: null,
+
+                // Mapping Nama XDA (Tetap dipertahankan)
+                xdaNames: {
+                    'XDA13': 'SUPERMINI', 'XDA19': 'SUPERLITE', 'XDA25': 'LITE', 'XDA27': 'HYPER LITE',
+                    'XDA31': 'MINI', 'XDA34': 'MEDIUM', 'XDA38': 'BIG', 'XDA40': 'BIG PLUS',
+                    'XDA47': 'EXTRA BIG', 'XDA50': 'JUMBO V2', 'XDA53': 'JUMBO V3','XDA55': 'SUPER BIG', 'XDA63': 'MEGABIG V2',
+                    'XDA64': 'JUMBO', 'XDA76': 'SUPER JUMBO', 'XDA78': 'ULTRA JUMBO', 'XDA88': 'MEGABIG',
+                    'XDA105': 'HYPER JUMBO'
+                },
+
+                init() { 
+                    this.fetchData(false); 
+                    this.updateInterval = setInterval(() => {
+                        this.fetchData(true); 
+                    }, 5000);
+                },
+
+                switchTab(tab) { 
+                    this.currentTab = tab; 
+                    this.data = []; 
+                    this.fetchData(false); 
+                },
+                
+                get filteredData() {
+                    let result = this.data;
+                    if (this.searchQuery) {
+                        result = result.filter(item => item.config && item.config.toLowerCase().includes(this.searchQuery.toLowerCase()));
+                    }
+                    return result;
+                },
+                
+                isObject(val) { return typeof val === 'object' && val !== null; },
+
+                async fetchData(isBackground = false) {
+                    if (!isBackground) {
+                        this.isLoading = true;
+                        this.error = null;
+                        this.data = []; 
+                    }
+
+                    try {
+                        let url = '';
+                        
+                        // Tentukan URL berdasarkan Tab
+                        if (this.currentTab === 'regulers') {
+                            url = '/api/regulers?_=' + Date.now();
+                        } else if (this.currentTab === 'circles') {
+                            url = '/api/circles?_=' + Date.now();
+                        }
+
+                        // Kedua endpoint ini menggunakan Header API Key yang sama
+                        const options = { 
+                            headers: { 
+                                'x-api-key': this.apiKey 
+                            } 
+                        };
+
+                        const res = await fetch(url, options);
+                        if (!res.ok) throw new Error('Gagal koneksi server');
+                        const json = await res.json();
+                        
+                        let rawData = Array.isArray(json) ? json : [];
+                        
+                        // LOGIC PROCESSING DATA
+                        if (this.currentTab === 'regulers') {
+                            // Logic khusus XDA (pake mapping nama)
+                            this.data = rawData.map(item => {
+                                const originalCode = item.config; 
+                                const friendlyName = this.xdaNames[originalCode] || originalCode;
+                                return {
+                                    ...item,
+                                    config: friendlyName,    
+                                    _sortKey: originalCode
+                                };
+                            }).sort((a, b) => {
+                                const numA = parseInt(a._sortKey.replace(/^\D+/g, '')) || 0;
+                                const numB = parseInt(b._sortKey.replace(/^\D+/g, '')) || 0;
+                                return numA - numB;
+                            });
+
+                        } else {
+                            // Logic Umum untuk CIRCLE (Tampilkan apa adanya dari API)
+                            // Asumsi struktur data mirip XDA: { config: "Nama", count: 10, ... }
+                            this.data = rawData.map(item => ({
+                                config: item.config || item.nama || 'Unknown',
+                                count: parseInt(item.count || item.stok || item.sisa_slot || 0),
+                                quota_allocation: item.quota_allocation || item.kuota || '-'
+                            }));
+                        }
+                        
+                        if(isBackground) this.error = null;
+
+                    } catch (err) {
+                        console.error(err);
+                        if (!isBackground) {
+                            this.error = 'Gagal memuat data.';
+                        }
+                    } finally { 
+                        this.isLoading = false; 
+                    }
+                },
+
+                copyText(txt) {
+                    navigator.clipboard.writeText(txt);
+                    this.toast.message = 'Disalin: ' + txt;
+                    this.toast.show = true;
+                    setTimeout(() => this.toast.show = false, 1500);
+                },
+                toast: { show: false, message: '' }
+            }));
+        });
+    </script>
+</body>
+</html>
