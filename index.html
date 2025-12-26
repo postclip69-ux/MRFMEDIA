@@ -133,33 +133,33 @@
                  :class="(currentTab === 'xla') ? 'grid-cols-2' : 'grid-cols-4'">
                 
                 <template x-for="item in filteredData" :key="item.config">
-                    <div class="glass-panel p-2 rounded hover:bg-slate-800/80 transition relative flex flex-col justify-between h-full min-h-[80px] overflow-hidden group">
+                    <div class="bg-white p-2 rounded shadow-md hover:shadow-lg transition relative flex flex-col justify-between h-full min-h-[80px] overflow-hidden group border border-gray-200">
                         
                         <template x-if="item.count > 0">
                             <div class="absolute top-0 right-0 p-1 z-10 check-anim-entry">
-                                <i class="fa-solid fa-circle-check text-emerald-400 text-[12px] bg-slate-900 rounded-full border border-emerald-500/50 glow-active"></i>
+                                <i class="fa-solid fa-circle-check text-emerald-500 text-[12px] bg-white rounded-full border border-emerald-500/50"></i>
                             </div>
                         </template>
 
                         <div class="mb-1 pr-3">
                             <div class="flex justify-between items-start">
                                 <h3 @click="copyText(item.config)" 
-                                    class="font-bold text-white cursor-pointer truncate w-full hover:text-accent"
+                                    class="font-bold text-emerald-600 cursor-pointer truncate w-full hover:text-emerald-800"
                                     :class="(currentTab === 'xla') ? 'text-sm' : 'text-[8px]'" 
                                     :title="item.config">
                                     <span x-text="item.config"></span>
                                 </h3>
                             </div>
                             
-                            <div :class="item.count > 0 ? 'text-emerald-400' : 'text-red-500'" 
+                            <div :class="item.count > 0 ? 'text-gray-600' : 'text-red-500'" 
                                  class="font-bold mt-1 flex items-center gap-1"
                                  :class="(currentTab === 'xla') ? 'text-xs' : 'text-[8px]'">
-                                Stok: <span x-text="item.count"></span>
+                                Stok: <span class="text-black" x-text="item.count"></span>
                             </div>
 
                             <template x-if="item.count === 0">
                                 <div class="mt-1">
-                                    <p class="text-red-500 font-bold italic text-glow-red leading-tight"
+                                    <p class="text-red-500 font-bold italic leading-tight"
                                        :class="(currentTab === 'xla') ? 'text-[9px]' : 'text-[6px]'">
                                         HABIS
                                     </p>
@@ -167,15 +167,15 @@
                             </template>
                         </div>
 
-                        <div class="border-t border-white/10 pt-1 mt-auto">
+                        <div class="border-t border-gray-200 pt-1 mt-auto">
                             
                             <template x-if="isObject(item.quota_allocation)">
                                 <div class="space-y-0.5">
                                     <template x-for="(val, key) in item.quota_allocation">
                                         <div class="flex justify-between items-center" 
                                              :class="(currentTab === 'xla') ? 'text-[9px]' : 'text-[6px]'">
-                                            <span class="text-gray-400 truncate max-w-[40px]" x-text="key"></span>
-                                            <span class="text-accent font-mono font-bold" x-text="val + (currentTab === 'xla' ? '' : ' GB')"></span>
+                                            <span class="text-gray-800 font-semibold truncate max-w-[40px]" x-text="key"></span>
+                                            <span class="text-black font-mono font-bold" x-text="val + (currentTab === 'xla' ? '' : ' GB')"></span>
                                         </div>
                                     </template>
                                 </div>
@@ -183,10 +183,10 @@
 
                             <template x-if="!isObject(item.quota_allocation)">
                                 <div class="text-center">
-                                    <span class="font-bold text-gray-200" 
+                                    <span class="font-bold text-black" 
                                           :class="(currentTab === 'xla') ? 'text-xs' : 'text-[10px]'"
                                           x-text="item.quota_allocation"></span> 
-                                    <span class="text-gray-500 text-[8px]">
+                                    <span class="text-gray-800 text-[8px] font-bold">
                                         <span>GB</span>
                                     </span>
                                 </div>
@@ -219,8 +219,6 @@
                 apiKey: 'bunderkananbunderkanankirikotaksegitigaatas',
                 
                 updateInterval: null,
-
-                // SAYA HAPUS VARIABEL xdaNames KARENA SUDAH TIDAK DIPAKAI
 
                 xlaDetails: {
                     'SuperMini': { 'Area1': '13-15', 'Area2': '15-17', 'Area3': '20-22', 'Area4': '30-32' },
@@ -281,7 +279,6 @@
                         
                         if (json.error) throw new Error(json.error);
 
-                        // === LOGIC XLA (TETAP SAMA) ===
                         if (this.currentTab === 'xla') {
                             if (json.ok && Array.isArray(json.data)) {
                                 this.data = json.data.map(item => {
@@ -296,24 +293,20 @@
                                 });
                             }
                         }
-                        // === LOGIC XDA (REGULER) - DIGANTI ===
                         else if (this.currentTab === 'regulers') {
                             let rawData = Array.isArray(json) ? json : [];
                             this.data = rawData.map(item => {
-                                // TIDAK LAGI PAKE MAPPING NAMA, LANGSUNG KODE ASLI
                                 return {
                                     ...item,
-                                    config: item.config, // Pakai kode API langsung (misal: XDA13)
+                                    config: item.config, 
                                     quota_allocation: item.quota_allocation
                                 };
                             }).sort((a, b) => {
-                                // Sortir berdasarkan angka di dalam kode (XDA13 sebelum XDA50)
                                 const numA = parseInt(a.config.replace(/^\D+/g, '')) || 0;
                                 const numB = parseInt(b.config.replace(/^\D+/g, '')) || 0;
                                 return numA - numB;
                             });
                         }
-                        // === LOGIC XL CIRCLE - DITAMBAH SORTING ===
                         else if (this.currentTab === 'circles') {
                             let rawData = Array.isArray(json) ? json : [];
                             this.data = rawData.map(item => ({
@@ -321,7 +314,6 @@
                                 count: parseInt(item.count || 0),
                                 quota_allocation: item.quota_allocation 
                             })).sort((a, b) => {
-                                // Sortir berdasarkan angka (XCLP5 sebelum XCLP10)
                                 const numA = parseInt(a.config.replace(/^\D+/g, '')) || 0;
                                 const numB = parseInt(b.config.replace(/^\D+/g, '')) || 0;
                                 return numA - numB;
