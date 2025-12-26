@@ -42,7 +42,6 @@
         #mobile-app-container {
             width: 100%;
             max-width: 480px;
-            /* BACKGROUND TETAP GRADASI BIRU MUDA */
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             min-height: 100vh;
             position: relative;
@@ -175,7 +174,7 @@
                                         <div class="flex justify-between items-center" 
                                              :class="(currentTab === 'xla') ? 'text-[9px]' : 'text-[6px]'">
                                             <span class="text-gray-800 font-semibold truncate max-w-[40px]" x-text="key"></span>
-                                            <span class="text-black font-mono font-bold" x-text="val + (currentTab === 'xla' ? '' : ' GB')"></span>
+                                            <span class="text-black font-mono font-bold" x-text="val + ' GB'"></span>
                                         </div>
                                     </template>
                                 </div>
